@@ -1,5 +1,5 @@
 import url, { URL } from 'url'
-import { fetch } from '@pnpm/fetch'
+import { fetchWithAgent } from '@pnpm/fetch'
 
 import git from 'graceful-git'
 import HostedGit from 'hosted-git-info'
@@ -91,7 +91,9 @@ async function fromHostedGit (hosted: any): Promise<HostedPackageSpec> { // esli
           // npm instead tries git ls-remote directly which prompts user for login credentials.
 
           // HTTP HEAD on https://domain/user/repo, strip out ".git"
-          const response = await fetch(httpsUrl.slice(0, -4), { method: 'HEAD', follow: 0, retry: { retries: 0 } })
+          const httpProxy = process.env['HTTP_PROXY']
+          const httpsProxy = process.env['HTTPS_PROXY']
+          const response = await fetchWithAgent(httpsUrl.slice(0, -4), { agentOptions: { httpsProxy, httpProxy }, method: 'HEAD', follow: 0, retry: { retries: 0 } })
           if (response.ok) {
             fetchSpec = httpsUrl
           }
